@@ -12,3 +12,10 @@ sepolia = {key = "${ETHERSCAN_API_KEY}"}
 sepolia = "${SEPOLIA_RPC_URL}"
 
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config
+[lint]
+lint_on_build = false
+
+fs_permissions = [
+  {access = "read", path = "./broadcast"},
+  {access = "read", path = "./reports"},
+]
