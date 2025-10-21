@@ -3,6 +3,10 @@ src = "src"
 out = "out"
 libs = ["lib"]
 remappings = ['@chainlink/contracts/=lib/chainlink-brownie-contracts/contracts/', '@solmate=lib/solmate/src/']
+fs_permissions = [
+  {access = "read", path = "./broadcast"},
+  {access = "read", path = "./reports"},
+]
 
 [etherscan]
 mainnet = { key = "${ETHERSCAN_API_KEY}" }
@@ -11,11 +15,9 @@ sepolia = {key = "${ETHERSCAN_API_KEY}"}
 [rpc_endpoints]
 sepolia = "${SEPOLIA_RPC_URL}"
 
+[fuzz]
+runs = 257
+
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config
 [lint]
 lint_on_build = false
-
-fs_permissions = [
-  {access = "read", path = "./broadcast"},
-  {access = "read", path = "./reports"},
-]

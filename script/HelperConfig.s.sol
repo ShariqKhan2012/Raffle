@@ -16,6 +16,7 @@ contract HelperConfig is Script {
         address vrfCoordinator;
         uint32 callbackGasLimit;
         address linkToken;
+        address deployerAccount;
     }
 
     NetworkConfig private s_ActiveConfig;
@@ -30,6 +31,9 @@ contract HelperConfig is Script {
     bytes32 constant MAINNET_ETH_GAS_LANE =
         0x8077df514608a09f83e4e8d300645594e5d7234665448ba83f51a50f842bd3d9;
 
+    address constant MAINNET_DEPLOYER_ACCOUNT =
+        0x7bBb2Cfb1a2cBd319C5720eaE107E4d7d98329BE;
+
     /// @dev SEPOLIA Testnet related constants
     address constant SEPOLIA_ETH_VRF_COORDINATOR =
         0x9DdfaCa8183c41ad55329BdeeD9F6A8d53168B1B;
@@ -42,6 +46,16 @@ contract HelperConfig is Script {
 
     uint256 constant CHAINLINK_SEPOLIA_SUBSCRIPTION_ID =
         41085934845044354063341550534836621797926273166421041441715998229819555513022;
+
+    address constant SEPOLIA_DEPLOYER_ACCOUNT =
+        0x7bBb2Cfb1a2cBd319C5720eaE107E4d7d98329BE;
+
+    /**
+     * @dev This is the default address used by
+     * foundry/anvil for tx.origin and msg.sender
+     */
+    address constant ANVIL_DEPLOYER_ACCOUNT =
+        0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38;
 
     /**
      * @dev VRF Mock Constants
@@ -77,7 +91,8 @@ contract HelperConfig is Script {
                 hashKey: MAINNET_ETH_GAS_LANE,
                 vrfCoordinator: MAINNET_ETH_VRF_COORDINATOR,
                 callbackGasLimit: 500000,
-                linkToken: MAINNET_LINK_TOKEN
+                linkToken: MAINNET_LINK_TOKEN,
+                deployerAccount: MAINNET_DEPLOYER_ACCOUNT
             });
     }
 
@@ -90,7 +105,8 @@ contract HelperConfig is Script {
                 hashKey: SEPOLIA_ETH_GAS_LANE,
                 vrfCoordinator: SEPOLIA_ETH_VRF_COORDINATOR,
                 callbackGasLimit: 500000,
-                linkToken: SEPOLIA_LINK_TOKEN
+                linkToken: SEPOLIA_LINK_TOKEN,
+                deployerAccount: SEPOLIA_DEPLOYER_ACCOUNT
             });
     }
 
@@ -111,7 +127,8 @@ contract HelperConfig is Script {
             return s_ActiveConfig;
         }
 
-        vm.startBroadcast();
+        vm.startBroadcast(ANVIL_DEPLOYER_ACCOUNT);
+        //vm.startBroadcast();
         VRFCoordinatorV2_5Mock vrfCoordinator = new VRFCoordinatorV2_5Mock(
             MOCK_BASE_FEE,
             MOCK_GAS_PRICE_LINK,
@@ -128,7 +145,8 @@ contract HelperConfig is Script {
             hashKey: SEPOLIA_ETH_GAS_LANE, //Does'nt matter
             vrfCoordinator: address(vrfCoordinator),
             callbackGasLimit: 500000,
-            linkToken: address(linkToken)
+            linkToken: address(linkToken),
+            deployerAccount: ANVIL_DEPLOYER_ACCOUNT
         });
 
         return s_ActiveConfig;

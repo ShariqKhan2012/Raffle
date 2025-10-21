@@ -13,13 +13,17 @@ contract SubscriptionCreator is Script {
     function run() public {
         HelperConfig helperConfig = new HelperConfig();
         address vrfCoordinator = helperConfig.getActiveConfig().vrfCoordinator;
-        createSubscription(vrfCoordinator);
+        address deployerAccount = helperConfig
+            .getActiveConfig()
+            .deployerAccount;
+        createSubscription(vrfCoordinator, deployerAccount);
     }
 
     function createSubscription(
-        address vrfCoordinator
+        address vrfCoordinator,
+        address deployerAccount
     ) public returns (uint256, address) {
-        vm.startBroadcast();
+        vm.startBroadcast(deployerAccount);
         uint256 subscriptionId = VRFCoordinatorV2_5Mock(vrfCoordinator)
             .createSubscription();
         vm.stopBroadcast();
@@ -39,7 +43,8 @@ contract SubscriptionFunder is Script {
             config.vrfCoordinator,
             config.subscriptionId,
             config.linkToken,
-            3 ether
+            3 ether,
+            config.deployerAccount
         );
     }
 
@@ -47,19 +52,18 @@ contract SubscriptionFunder is Script {
         address vrfCoordinator,
         uint256 subscriptionId,
         address linkToken,
-        uint256 amount
+        uint256 amount,
+        address deployerAccount
     ) public {
-        console2.log("Inside fundSubscription 1", subscriptionId);
         if (block.chainid == ANVIL_CHAINID) {
-            vm.startBroadcast();
+            vm.startBroadcast(deployerAccount);
             VRFCoordinatorV2_5Mock(vrfCoordinator).fundSubscription(
                 subscriptionId,
                 amount
             );
             vm.stopBroadcast();
         } else {
-            console2.log("Inside fundSubscription 2", subscriptionId);
-            vm.startBroadcast();
+            vm.startBroadcast(deployerAccount);
             LinkToken(linkToken).transferAndCall(
                 vrfCoordinator,
                 amount,
@@ -77,18 +81,25 @@ contract ConsumerAdder is Script {
             .getActiveConfig();
         address vrfCoordinator = config.vrfCoordinator;
         uint256 subscriptionId = config.subscriptionId;
+        address deployerAccount = config.deployerAccount;
         address mostRecentlyDeployedRaffle = DevOpsTools
             .get_most_recent_deployment("Raffle", block.chainid);
 
-        addConsumer(vrfCoordinator, subscriptionId, mostRecentlyDeployedRaffle);
+        addConsumer(
+            vrfCoordinator,
+            subscriptionId,
+            mostRecentlyDeployedRaffle,
+            deployerAccount
+        );
     }
 
     function addConsumer(
         address vrfCoordinator,
         uint256 subscriptionId,
-        address consumerContractToAdd
+        address consumerContractToAdd,
+        address deployerAccount
     ) public {
-        vm.startBroadcast();
+        vm.startBroadcast(deployerAccount);
         VRFCoordinatorV2_5Mock(vrfCoordinator).addConsumer(
             subscriptionId,
             consumerContractToAdd

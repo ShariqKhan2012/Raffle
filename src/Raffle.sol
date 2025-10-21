@@ -11,7 +11,7 @@ import {console} from "forge-std/Test.sol";
  * @notice This contract creates a sample Raffle
  * @dev Implements Chainlink VRFv2.5
  */
-contract Raffle is VRFConsumerBaseV2Plus {
+contract Raffle is VRFConsumerBaseV2Plus /*, AutomationCompatibleInterface*/ {
     /**
      * @dev Errors
      */
@@ -61,6 +61,7 @@ contract Raffle is VRFConsumerBaseV2Plus {
      */
     event Raffle__PlayerEnteredRaffle(address indexed player);
     event Raffle__WinnerPicked(address indexed player);
+    event Raffle__UpkeepPerformed(uint256 indexed requestId);
 
     constructor(
         uint256 entryFee,
@@ -128,11 +129,6 @@ contract Raffle is VRFConsumerBaseV2Plus {
         hasEnoughTimePassed = (block.timestamp - s_lastTimestamp > i_interval);
         hasBalance = address(this).balance > 0;
         hasPlayers = s_players.length > 0;
-        //console.log("=================");
-        //console.log(block.timestamp);
-        //console.log(s_lastTimestamp);
-        //console.log(i_interval);
-        //console.log("=================");
 
         return (isRaffleRunning, hasEnoughTimePassed, hasBalance, hasPlayers);
     }
@@ -140,12 +136,6 @@ contract Raffle is VRFConsumerBaseV2Plus {
     function checkUpkeep(
         bytes memory /*checkData*/
     ) public view returns (bool upkeepNeeded, bytes memory performData) {
-        /*bool isRaffleRunning = s_raffleState == RaffleState.OPEN;
-        bool hasEnoughTimePassed = (block.timestamp - s_lastTimestamp <
-            i_interval);
-        bool hasBalance = address(this).balance > 0;
-        bool hasPlayers = s_players.length > 0;*/
-
         (
             bool isRaffleRunning,
             bool hasEnoughTimePassed,
@@ -201,6 +191,8 @@ contract Raffle is VRFConsumerBaseV2Plus {
         );
 
         s_lastRequestId = requestId;
+
+        emit Raffle__UpkeepPerformed(requestId);
         return requestId;
     }
 
@@ -244,5 +236,25 @@ contract Raffle is VRFConsumerBaseV2Plus {
             //revert Raffle__InvalidIndex(s_players.length, index);
         }
         return s_players[index];
+    }
+
+    function getLastTimestamp() public view returns (uint256) {
+        return s_lastTimestamp;
+    }
+
+    function getInterval() public view returns (uint256) {
+        return i_interval;
+    }
+
+    function getBalance() public view returns (uint256) {
+        return address(this).balance;
+    }
+
+    function getLastRequestId() public view returns (uint256) {
+        return s_lastRequestId;
+    }
+
+    function getLastWinner() public view returns (address) {
+        return s_lastWinner;
     }
 }
