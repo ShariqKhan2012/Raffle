@@ -44,10 +44,28 @@ contract HelperConfig is Script {
     bytes32 constant SEPOLIA_ETH_GAS_LANE =
         0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae;
 
+    /* uint256 constant CHAINLINK_SEPOLIA_SUBSCRIPTION_ID =
+        41085934845044354063341550534836621797926273166421041441715998229819555513022; */
     uint256 constant CHAINLINK_SEPOLIA_SUBSCRIPTION_ID =
-        41085934845044354063341550534836621797926273166421041441715998229819555513022;
+        102389625877177369050870684927668547066756105815735865426654283611226843426806;
 
     address constant SEPOLIA_DEPLOYER_ACCOUNT =
+        0x7bBb2Cfb1a2cBd319C5720eaE107E4d7d98329BE;
+
+    /// @dev POLYGON Testnet related constants
+    address constant POLYGON_ETH_VRF_COORDINATOR =
+        0x343300b5d84D444B2ADc9116FEF1bED02BE49Cf2;
+
+    address constant POLYGON_LINK_TOKEN =
+        0x0Fd9e8d3aF1aaee056EB9e802c3A762a667b1904;
+
+    bytes32 constant POLYGON_ETH_GAS_LANE =
+        0x816bedba8a50b294e5cbd47842baf240c2385f2eaf719edbd4f250a137a8c899;
+
+    uint256 constant CHAINLINK_POLYGON_SUBSCRIPTION_ID =
+        41085934845044354063341550534836621797926273166421041441715998229819555513022;
+
+    address constant POLYGON_DEPLOYER_ACCOUNT =
         0x7bBb2Cfb1a2cBd319C5720eaE107E4d7d98329BE;
 
     /**
@@ -66,6 +84,7 @@ contract HelperConfig is Script {
 
     uint8 constant ETH_MAINNET_CHAINID = 1;
     uint256 constant ETH_SEPOLIA_CHAINID = 11155111;
+    uint256 constant POLYGON_CHAINID = 80002;
     uint256 constant ANVIL_CHAINID = 31337;
 
     constructor() {
@@ -73,6 +92,8 @@ contract HelperConfig is Script {
             s_ActiveConfig = getMainnetEthConfig();
         } else if (block.chainid == ETH_SEPOLIA_CHAINID) {
             s_ActiveConfig = getSepoliaEthConfig();
+        } else if (block.chainid == POLYGON_CHAINID) {
+            s_ActiveConfig = getPolygonConfig();
         } else if (block.chainid == ANVIL_CHAINID) {
             s_ActiveConfig = getOrCreateAnvilEthConfig();
         }
@@ -99,14 +120,30 @@ contract HelperConfig is Script {
     function getSepoliaEthConfig() public pure returns (NetworkConfig memory) {
         return
             NetworkConfig({
-                entryFee: 0.01 ether,
+                entryFee: 0.001 ether,
                 interval: 30,
                 subscriptionId: CHAINLINK_SEPOLIA_SUBSCRIPTION_ID,
+                //subscriptionId: 0,
                 hashKey: SEPOLIA_ETH_GAS_LANE,
                 vrfCoordinator: SEPOLIA_ETH_VRF_COORDINATOR,
                 callbackGasLimit: 500000,
                 linkToken: SEPOLIA_LINK_TOKEN,
                 deployerAccount: SEPOLIA_DEPLOYER_ACCOUNT
+            });
+    }
+
+    function getPolygonConfig() public pure returns (NetworkConfig memory) {
+        return
+            NetworkConfig({
+                entryFee: 0.01 ether,
+                interval: 30,
+                subscriptionId: CHAINLINK_SEPOLIA_SUBSCRIPTION_ID,
+                //subscriptionId: 0,
+                hashKey: POLYGON_ETH_GAS_LANE,
+                vrfCoordinator: POLYGON_ETH_VRF_COORDINATOR,
+                callbackGasLimit: 500000,
+                linkToken: POLYGON_LINK_TOKEN,
+                deployerAccount: POLYGON_DEPLOYER_ACCOUNT
             });
     }
 
@@ -128,7 +165,6 @@ contract HelperConfig is Script {
         }
 
         vm.startBroadcast(ANVIL_DEPLOYER_ACCOUNT);
-        //vm.startBroadcast();
         VRFCoordinatorV2_5Mock vrfCoordinator = new VRFCoordinatorV2_5Mock(
             MOCK_BASE_FEE,
             MOCK_GAS_PRICE_LINK,

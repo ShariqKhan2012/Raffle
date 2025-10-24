@@ -33,6 +33,7 @@ contract DeployRaffle is Script {
             "Checking config.subscriptionId => ",
             config.subscriptionId
         );
+
         if (config.subscriptionId == 0) {
             /**
              * @dev Populate the correct subscription Id
@@ -54,14 +55,15 @@ contract DeployRaffle is Script {
              * because `fundSubscription()` already contains
              * a broadcast block
              */
-            SubscriptionFunder subscriptionFunder = new SubscriptionFunder();
+            /*SubscriptionFunder subscriptionFunder = new SubscriptionFunder();
             subscriptionFunder.fundSubscription(
                 config.vrfCoordinator,
                 config.subscriptionId,
                 config.linkToken,
-                config.entryFee * 10000, // Just so that we have more than sufficiet funds,
+                //config.entryFee * 10000, // Just so that we have more than sufficiet funds,
+                1e18 * 10, //10 LINK
                 config.deployerAccount
-            );
+            );*/
         }
 
         vm.startBroadcast(config.deployerAccount);
@@ -74,6 +76,16 @@ contract DeployRaffle is Script {
             config.callbackGasLimit
         );
         vm.stopBroadcast();
+
+        SubscriptionFunder subscriptionFunder = new SubscriptionFunder();
+        subscriptionFunder.fundSubscription(
+            config.vrfCoordinator,
+            config.subscriptionId,
+            config.linkToken,
+            //config.entryFee * 10000, // Just so that we have more than sufficiet funds,
+            1e18 * 10, //10 LINK
+            config.deployerAccount
+        );
 
         /**
          * @dev Add consumer to the subscription
