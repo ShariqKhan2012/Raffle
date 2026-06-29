@@ -181,7 +181,7 @@ contract RaffleTest is Test {
      * function invokes fuzz testing i.e. the test will be run `N`
      * times with random values of the parameter.
      * `N` defaults to 256, bt ca be configured in the
-     * `foundry.toml` file by the variable ``
+     * `foundry.toml` file by the variable `runs`
      */
     function testFulfillRandomWordsCanOnlyBeCalledAfterPerformUpkeep(
         uint256 randomRequestId
