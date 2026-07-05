@@ -1,5 +1,5 @@
-
 > ! Updates from Video
+>
 > 1. V2.5 of Chainlink VRF uses a `uint256` as a subId instead of a `uint64` this repo has a comment to reflect that. We added a mock in case you'd like to work with version 2.5.
 > 2. We use `0.1.0` of the `foundry-devops` package which doesn't need to have `ffi=true`
 
@@ -7,7 +7,7 @@
 
 This is a section of the Cyfrin Foundry Solidity Course.
 
-*[⭐️ (3:04:09) | Lesson 9: Foundry Smart Contract Lottery](https://www.youtube.com/watch?v=sas02qSFZ74&t=11049s)*
+_[⭐️ (3:04:09) | Lesson 9: Foundry Smart Contract Lottery](https://www.youtube.com/watch?v=sas02qSFZ74&t=11049s)_
 
 - [Foundry Smart Contract Lottery](#foundry-smart-contract-lottery)
 - [Getting Started](#getting-started)
@@ -57,13 +57,14 @@ make anvil
 
 ## Library
 
-If you're having a hard time installing the chainlink library, you can optionally run this command. 
+If you're having a hard time installing the chainlink library, you can optionally run this command.
 
 ```
 forge install smartcontractkit/chainlink-brownie-contracts@0.6.1 --no-commit
 ```
 
 ## Deploy
+
 ```
 make deploy
 ```
@@ -73,6 +74,7 @@ make deploy
 [See below](#deployment-to-a-testnet-or-mainnet)
 
 ## Testing
+
 ```
 forge test
 ```
@@ -136,3 +138,28 @@ or, to create a ChainlinkVRF Subscription:
 ```
 make createSubscription ARGS="--network sepolia"
 ```
+
+To test the full flow on Anvil:
+
+# 1. Enter raffle (sends 0.01 ETH)
+
+cast send 0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9 "enterRaffle()" \
+ --value 0.01ether --rpc-url http://127.0.0.1:8545 --account shariq-foundry-dev
+
+# 2. Fast-forward time past interval (30s)
+
+cast rpc evm_increaseTime 31 --rpc-url http://127.0.0.1:8545
+cast rpc evm_mine --rpc-url http://127.0.0.1:8545
+
+# 3. Trigger upkeep (fires VRF requestRandomWords)
+
+cast send 0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9 "performUpkeep(bytes)" 0x \
+ --rpc-url http://127.0.0.1:8545 --account shariq-foundry-dev
+
+# 4. Fulfill VRF (mock coordinator — simulates Chainlink node response)
+
+cast send 0x5FbDB2315678afecb367f032d93F642f64180aa3 \
+ "fulfillRandomWords(uint256,address)" <requestId> 0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9 \
+ --rpc-url http://127.0.0.1:8545 --account shariq-foundry-dev
+
+Get <requestId> from the performUpkeep receipt logs, or read raffle.getLastRequestId() after step 3.

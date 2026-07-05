@@ -3,7 +3,6 @@ pragma solidity 0.8.19;
 
 import {VRFConsumerBaseV2Plus} from "@chainlink/contracts/src/v0.8/vrf/dev/VRFConsumerBaseV2Plus.sol";
 import {VRFV2PlusClient} from "@chainlink/contracts/src/v0.8/vrf/dev/libraries/VRFV2PlusClient.sol";
-import {console} from "forge-std/Test.sol";
 
 /**
  * @title A sample Raffle contract
@@ -151,16 +150,14 @@ contract Raffle is VRFConsumerBaseV2Plus /*, AutomationCompatibleInterface*/ {
         return (upkeepNeeded, hex"");
     }
 
-    function performUpkeep(
-        bytes calldata /*performData*/
-    ) external returns (uint256) {
+    function performUpkeep(bytes calldata /*performData*/) external {
         (
             bool isRaffleRunning,
             bool hasEnoughTimePassed,
             bool hasBalance,
             bool hasPlayers
         ) = _checkUpkeepDependencies();
-
+`
         bool upkeepNeeded = isRaffleRunning &&
             hasEnoughTimePassed &&
             hasBalance &&
@@ -193,7 +190,6 @@ contract Raffle is VRFConsumerBaseV2Plus /*, AutomationCompatibleInterface*/ {
         s_lastRequestId = requestId;
 
         emit Raffle__UpkeepPerformed(requestId);
-        return requestId;
     }
 
     function fulfillRandomWords(
@@ -233,9 +229,13 @@ contract Raffle is VRFConsumerBaseV2Plus /*, AutomationCompatibleInterface*/ {
 
     function getPlayerAtIndex(uint256 index) public view returns (address) {
         if (index >= s_players.length) {
-            //revert Raffle__InvalidIndex(s_players.length, index);
+            revert Raffle__InvalidIndex(s_players.length, index);
         }
         return s_players[index];
+    }
+
+    function getPlayersCount() public view returns (uint256) {
+        return s_players.length;
     }
 
     function getLastTimestamp() public view returns (uint256) {

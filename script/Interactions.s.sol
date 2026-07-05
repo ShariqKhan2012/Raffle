@@ -4,7 +4,7 @@ pragma solidity ^0.8.19;
 
 import {Script} from "forge-std/Script.sol";
 import {HelperConfig} from "script/HelperConfig.s.sol";
-import {VRFCoordinatorV2_5Mock} from "@chainlink/contracts/src/v0.8/vrf/mocks/VRFCoordinatorV2_5Mock.sol";
+import {VRFCoordinatorV2_5MockLocal} from "test/mocks/VRFCoordinatorV2_5MockLocal.sol";
 import {IVRFCoordinatorV2Plus} from "@chainlink/contracts/src/v0.8/vrf/dev/interfaces/IVRFCoordinatorV2Plus.sol";
 import {console2} from "forge-std/Test.sol";
 import {LinkToken} from "test/mocks/LinkToken.sol";
@@ -16,31 +16,27 @@ contract SubscriptionCreator is Script {
     function run() public {
         HelperConfig helperConfig = new HelperConfig();
         address vrfCoordinator = helperConfig.getActiveConfig().vrfCoordinator;
-        address deployerAccount = helperConfig
-            .getActiveConfig()
-            .deployerAccount;
-        createSubscription(vrfCoordinator, deployerAccount);
+        createSubscription(vrfCoordinator);
     }
 
+    // vm.startBroadcast() with no address uses the --account signer automatically.
     function createSubscription(
-        address vrfCoordinator,
-        address deployerAccount
+        address vrfCoordinator
     ) public returns (uint256, address) {
         if (block.chainid == ANVIL_CHAINID) {
-            vm.startBroadcast(deployerAccount);
-            uint256 subscriptionId = VRFCoordinatorV2_5Mock(vrfCoordinator)
+            vm.startBroadcast();
+            uint256 subscriptionId = VRFCoordinatorV2_5MockLocal(vrfCoordinator)
                 .createSubscription();
             vm.stopBroadcast();
             console2.log("your mock subscription id is: ", subscriptionId);
-            console2.log("please update your sub id in HelperConfig.s.sol");
             return (subscriptionId, vrfCoordinator);
         } else {
-            vm.startBroadcast(deployerAccount);
+            vm.startBroadcast();
             uint256 subscriptionId = IVRFCoordinatorV2Plus(vrfCoordinator)
                 .createSubscription();
             vm.stopBroadcast();
             console2.log("your subscription id is: ", subscriptionId);
-            console2.log("please update your sub id in HelperConfig.s.sol");
+            console2.log("please update CHAINLINK_SEPOLIA_SUBSCRIPTION_ID in .env");
             (
                 uint96 balance,
                 ,
@@ -59,8 +55,6 @@ contract SubscriptionCreator is Script {
 }
 
 contract SubscriptionFunder is Script {
-    //uint256 constant ANVIL_CHAINID = 31337;
-
     function run() public {
         HelperConfig helperConfig = new HelperConfig();
         HelperConfig.NetworkConfig memory config = helperConfig
@@ -70,9 +64,7 @@ contract SubscriptionFunder is Script {
             config.vrfCoordinator,
             config.subscriptionId,
             config.linkToken,
-            //0.001 ether,
-            10,
-            config.deployerAccount
+            10
         );
     }
 
@@ -80,32 +72,17 @@ contract SubscriptionFunder is Script {
         address vrfCoordinator,
         uint256 subscriptionId,
         address linkToken,
-        uint256 amount,
-        address deployerAccount
+        uint256 amount
     ) public {
         if (block.chainid == ANVIL_CHAINID) {
-            vm.startBroadcast(deployerAccount);
-            VRFCoordinatorV2_5Mock(vrfCoordinator).fundSubscription(
+            vm.startBroadcast();
+            VRFCoordinatorV2_5MockLocal(vrfCoordinator).fundSubscription(
                 subscriptionId,
                 amount * 1000
             );
             vm.stopBroadcast();
         } else {
-            vm.startBroadcast(deployerAccount);
-            //first check balance
-            uint256 walletLinkBalance = LinkToken(linkToken).balanceOf(
-                deployerAccount
-            );
-            uint256 scriptLinkBalance = LinkToken(linkToken).balanceOf(
-                address(this)
-            );
-            console2.log("Link Balance of wallet => ", walletLinkBalance);
-            console2.log(
-                "Link Balance of scriptLinkBalance => ",
-                scriptLinkBalance
-            );
-            //LinkToken(linkToken).transfer(address(this), 1e18 * 10);
-
+            vm.startBroadcast();
             LinkToken(linkToken).transferAndCall(
                 vrfCoordinator,
                 amount,
@@ -121,25 +98,20 @@ contract ConsumerAdder is Script {
         HelperConfig helperConfig = new HelperConfig();
         HelperConfig.NetworkConfig memory config = helperConfig
             .getActiveConfig();
-        address vrfCoordinator = config.vrfCoordinator;
-        uint256 subscriptionId = config.subscriptionId;
-        address deployerAccount = config.deployerAccount;
         address mostRecentlyDeployedRaffle = DevOpsTools
             .get_most_recent_deployment("Raffle", block.chainid);
 
         addConsumer(
-            vrfCoordinator,
-            subscriptionId,
-            mostRecentlyDeployedRaffle,
-            deployerAccount
+            config.vrfCoordinator,
+            config.subscriptionId,
+            mostRecentlyDeployedRaffle
         );
     }
 
     function addConsumer(
         address vrfCoordinator,
         uint256 subscriptionId,
-        address consumerContractToAdd,
-        address deployerAccount
+        address consumerContractToAdd
     ) public {
         (uint96 balance, , , address subOwner, ) = IVRFCoordinatorV2Plus(
             vrfCoordinator
@@ -150,9 +122,9 @@ contract ConsumerAdder is Script {
         console2.log("consumerContractToAdd:", consumerContractToAdd);
         console2.log("=============================");
 
-        vm.startBroadcast(deployerAccount);
+        vm.startBroadcast();
         if (block.chainid == ANVIL_CHAINID) {
-            VRFCoordinatorV2_5Mock(vrfCoordinator).addConsumer(
+            VRFCoordinatorV2_5MockLocal(vrfCoordinator).addConsumer(
                 subscriptionId,
                 consumerContractToAdd
             );

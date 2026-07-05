@@ -9,10 +9,7 @@ import {SubscriptionCreator, SubscriptionFunder, ConsumerAdder} from "script/Int
 import {console2} from "forge-std/Test.sol";
 
 contract DeployRaffle is Script {
-    function run()
-        external
-        returns (Raffle, HelperConfig.NetworkConfig memory)
-    {
+    function run() external returns (Raffle, HelperConfig.NetworkConfig memory) {
         /**
          * Any transaction that comes after vm.startBroadcast()
          * is a real trasaction. Anything before that isn't.
@@ -27,14 +24,12 @@ contract DeployRaffle is Script {
          * here as:
          * address priceFeedAddress = vm.envAddress("PRICE_FEED_ADDRESS");
          */
-        HelperConfig.NetworkConfig memory config = helperConfig
-            .getActiveConfig();
-        console2.log(
-            "Checking config.subscriptionId => ",
-            config.subscriptionId
-        );
+        HelperConfig.NetworkConfig memory config = helperConfig.getActiveConfig();
+        console2.log("Checking config.subscriptionId => ", config.subscriptionId);
 
         if (config.subscriptionId == 0) {
+            console2.log("++++++++++++++++++++++++++++");
+            console2.log("Creating subscription and funding it on chainId: ", block.chainid);
             /**
              * @dev Populate the correct subscription Id
              * Following code should NOT be between
@@ -43,30 +38,14 @@ contract DeployRaffle is Script {
              * a broadcast block
              */
             SubscriptionCreator subscriptionCreator = new SubscriptionCreator();
-            (config.subscriptionId, ) = subscriptionCreator.createSubscription(
-                config.vrfCoordinator,
-                config.deployerAccount
-            );
-
-            /**
-             * @dev Fund the subscription with link tokens
-             * Following code should NOT be between
-             * `vm.startBroadcast()` and `vm.stopBroadcast()`
-             * because `fundSubscription()` already contains
-             * a broadcast block
-             */
-            /*SubscriptionFunder subscriptionFunder = new SubscriptionFunder();
-            subscriptionFunder.fundSubscription(
-                config.vrfCoordinator,
-                config.subscriptionId,
-                config.linkToken,
-                //config.entryFee * 10000, // Just so that we have more than sufficiet funds,
-                1e18 * 10, //10 LINK
-                config.deployerAccount
-            );*/
+            (config.subscriptionId,) =
+                subscriptionCreator.createSubscription(config.vrfCoordinator);
+            console2.log("Created New subscription with Id: ", config.subscriptionId);
+            console2.log("++++++++++++++++++++++++++++");
         }
 
-        vm.startBroadcast(config.deployerAccount);
+        // vm.startBroadcast() with no address uses the --account signer automatically.
+        vm.startBroadcast();
         Raffle raffle = new Raffle(
             config.entryFee,
             config.interval,
@@ -82,9 +61,7 @@ contract DeployRaffle is Script {
             config.vrfCoordinator,
             config.subscriptionId,
             config.linkToken,
-            //config.entryFee * 10000, // Just so that we have more than sufficiet funds,
-            1e18 * 10, //10 LINK
-            config.deployerAccount
+            1e18 * 10
         );
 
         /**
@@ -94,12 +71,7 @@ contract DeployRaffle is Script {
          * `addCosumer()` already contains a broadcast block
          */
         ConsumerAdder consumerAdder = new ConsumerAdder();
-        consumerAdder.addConsumer(
-            config.vrfCoordinator,
-            config.subscriptionId,
-            address(raffle),
-            config.deployerAccount
-        );
+        consumerAdder.addConsumer(config.vrfCoordinator, config.subscriptionId, address(raffle));
 
         return (raffle, config);
     }

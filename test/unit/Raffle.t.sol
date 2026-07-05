@@ -6,7 +6,7 @@ import {Vm} from "forge-std/Vm.sol";
 import {HelperConfig} from "script/HelperConfig.s.sol";
 import {DeployRaffle} from "script/DeployRaffle.s.sol";
 import {Raffle} from "src/Raffle.sol";
-import {VRFCoordinatorV2_5Mock} from "@chainlink/contracts/src/v0.8/vrf/mocks/VRFCoordinatorV2_5Mock.sol";
+import {VRFCoordinatorV2_5MockLocal} from "test/mocks/VRFCoordinatorV2_5MockLocal.sol";
 
 contract RaffleTest is Test {
     Raffle raffle;
@@ -135,7 +135,7 @@ contract RaffleTest is Test {
             raffle.getLastTimestamp() >
             raffle.getInterval());
         bool hasBalance = raffle.getBalance() > 0;
-        bool hasPlayers = raffle.getPlayerAtIndex(0) != address(0);
+        bool hasPlayers = raffle.getPlayersCount() > 0;
 
         /**
          * @dev We are expecting a revert because enough
@@ -194,13 +194,13 @@ contract RaffleTest is Test {
          *
          * Also, since `Raffle::fulfillRandomWords()` is an internal
          * function, we can't call it from here.
-         * Instead, we will call `VRFCoordinatorV2_5Mock::fulfillRandomWords()`
+         * Instead, we will call `VRFCoordinatorV2_5MockLocal::fulfillRandomWords()`
          * which in turn will call `Raffle::fulfillRandomWords()`
          * You can read it in more detail at:
          * https://chatgpt.com/c/68f1e483-88c8-8321-8785-0cca22bc25d2
          */
-        vm.expectRevert(VRFCoordinatorV2_5Mock.InvalidRequest.selector);
-        VRFCoordinatorV2_5Mock(config.vrfCoordinator).fulfillRandomWords(
+        vm.expectRevert(VRFCoordinatorV2_5MockLocal.InvalidRequest.selector);
+        VRFCoordinatorV2_5MockLocal(config.vrfCoordinator).fulfillRandomWords(
             randomRequestId,
             address(raffle)
         );
@@ -251,7 +251,7 @@ contract RaffleTest is Test {
         //emit Raffle__WinnerPicked(PLAYER);
 
         //Act
-        VRFCoordinatorV2_5Mock(config.vrfCoordinator).fulfillRandomWords(
+        VRFCoordinatorV2_5MockLocal(config.vrfCoordinator).fulfillRandomWords(
             uint256(requestId),
             address(raffle)
         );

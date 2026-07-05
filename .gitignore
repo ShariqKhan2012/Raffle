@@ -12,3 +12,11 @@ docs/
 
 # Dotenv file
 .env
+
+# UI (Next.js)
+ui/node_modules/
+ui/.next/
+ui/*.tsbuildinfo
+ui/next-env.d.ts
+ui/.env.local
+ui/.env*
