@@ -16,8 +16,8 @@ export default function Home() {
             On-Chain Raffle
           </h2>
           <p className="mt-4 max-w-md text-base text-zinc-400">
-            Pay the entry fee, get a ticket. Chainlink Automation picks a provably fair winner
-            when the interval expires.
+            Pay the entry fee, get a ticket. Chainlink VRF picks a provably random and fair winner
+            when the admin triggers the draw.
           </p>
         </div>
 
@@ -36,7 +36,7 @@ export default function Home() {
               {
                 step: "2",
                 title: "Wait",
-                desc: "Chainlink Automation monitors the contract and triggers a draw after the interval.",
+                desc: "Admin triggers a draw after some time.",
               },
               {
                 step: "3",

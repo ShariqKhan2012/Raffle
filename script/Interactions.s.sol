@@ -9,11 +9,19 @@ import {IVRFCoordinatorV2Plus} from "@chainlink/contracts/src/v0.8/vrf/dev/inter
 import {console2} from "forge-std/Test.sol";
 import {LinkToken} from "test/mocks/LinkToken.sol";
 import {DevOpsTools} from "foundry-devops/src/DevOpsTools.sol";
+import {Raffle} from "src/Raffle.sol";
 
 uint256 constant ANVIL_CHAINID = 31337;
 
 contract SubscriptionCreator is Script {
     function run() public {
+        // On Anvil: find the existing deployed mock coordinator, don't deploy fresh ones.
+        if (block.chainid == ANVIL_CHAINID) {
+            createSubscription(DevOpsTools.get_most_recent_deployment(
+                "VRFCoordinatorV2_5MockLocal", block.chainid
+            ));
+            return;
+        }
         HelperConfig helperConfig = new HelperConfig();
         address vrfCoordinator = helperConfig.getActiveConfig().vrfCoordinator;
         createSubscription(vrfCoordinator);
@@ -56,16 +64,18 @@ contract SubscriptionCreator is Script {
 
 contract SubscriptionFunder is Script {
     function run() public {
+        // On Anvil: read all addresses from the existing deployment rather than
+        // creating a fresh HelperConfig (which would deploy new mocks with sub ID 0).
+        if (block.chainid == ANVIL_CHAINID) {
+            address _coord = DevOpsTools.get_most_recent_deployment("VRFCoordinatorV2_5MockLocal", block.chainid);
+            address _link  = DevOpsTools.get_most_recent_deployment("LinkToken", block.chainid);
+            address _raffle = DevOpsTools.get_most_recent_deployment("Raffle", block.chainid);
+            fundSubscription(_coord, Raffle(_raffle).getSubscriptionId(), _link, 10);
+            return;
+        }
         HelperConfig helperConfig = new HelperConfig();
-        HelperConfig.NetworkConfig memory config = helperConfig
-            .getActiveConfig();
-
-        fundSubscription(
-            config.vrfCoordinator,
-            config.subscriptionId,
-            config.linkToken,
-            10
-        );
+        HelperConfig.NetworkConfig memory config = helperConfig.getActiveConfig();
+        fundSubscription(config.vrfCoordinator, config.subscriptionId, config.linkToken, 10);
     }
 
     function fundSubscription(
@@ -95,17 +105,17 @@ contract SubscriptionFunder is Script {
 
 contract ConsumerAdder is Script {
     function run() public {
+        // On Anvil: read all addresses from the existing deployment.
+        if (block.chainid == ANVIL_CHAINID) {
+            address _coord = DevOpsTools.get_most_recent_deployment("VRFCoordinatorV2_5MockLocal", block.chainid);
+            address _raffle = DevOpsTools.get_most_recent_deployment("Raffle", block.chainid);
+            addConsumer(_coord, Raffle(_raffle).getSubscriptionId(), _raffle);
+            return;
+        }
         HelperConfig helperConfig = new HelperConfig();
-        HelperConfig.NetworkConfig memory config = helperConfig
-            .getActiveConfig();
-        address mostRecentlyDeployedRaffle = DevOpsTools
-            .get_most_recent_deployment("Raffle", block.chainid);
-
-        addConsumer(
-            config.vrfCoordinator,
-            config.subscriptionId,
-            mostRecentlyDeployedRaffle
-        );
+        HelperConfig.NetworkConfig memory config = helperConfig.getActiveConfig();
+        address raffleAddr = DevOpsTools.get_most_recent_deployment("Raffle", block.chainid);
+        addConsumer(config.vrfCoordinator, config.subscriptionId, raffleAddr);
     }
 
     function addConsumer(

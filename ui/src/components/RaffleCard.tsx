@@ -1,6 +1,15 @@
 "use client";
 
 import {
+  RAFFLE_ABI,
+  explorerAddress,
+  explorerTx,
+  getChainName,
+  getRaffleAddress,
+} from "@/lib/constants";
+import { useState } from "react";
+import { formatEther } from "viem";
+import {
   useAccount,
   useChainId,
   useReadContracts,
@@ -10,17 +19,8 @@ import {
   useWriteContract,
 } from "wagmi";
 import { anvil, sepolia } from "wagmi/chains";
-import { formatEther } from "viem";
-import {
-  RAFFLE_ABI,
-  getRaffleAddress,
-  getChainName,
-  explorerTx,
-  explorerAddress,
-} from "@/lib/constants";
 import { CountdownTimer } from "./CountdownTimer";
 import { DevPanel } from "./DevPanel";
-import { useState } from "react";
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000" as const;
 const ANVIL_CHAIN_ID = 31337;
@@ -33,7 +33,8 @@ export function RaffleCard() {
   const [txHash, setTxHash] = useState<`0x${string}` | undefined>();
   const [winnerFlash, setWinnerFlash] = useState<`0x${string}` | null>(null);
 
-  const raffleAddress = getRaffleAddress(chainId);
+  //const raffleAddress = getRaffleAddress(chainId);
+  const raffleAddress = getRaffleAddress();
   const isSupported = !!raffleAddress;
   const isAnvil = chainId === ANVIL_CHAIN_ID;
   const chainName = getChainName(chainId);
@@ -42,18 +43,18 @@ export function RaffleCard() {
   const { data, refetch, isLoading } = useReadContracts({
     contracts: raffleAddress
       ? [
-          { address: raffleAddress, abi: RAFFLE_ABI, functionName: "getRaffleState" },    // 0
-          { address: raffleAddress, abi: RAFFLE_ABI, functionName: "getEntryFee" },        // 1
-          { address: raffleAddress, abi: RAFFLE_ABI, functionName: "getBalance" },         // 2
-          { address: raffleAddress, abi: RAFFLE_ABI, functionName: "getLastWinner" },      // 3
-          { address: raffleAddress, abi: RAFFLE_ABI, functionName: "getLastTimestamp" },   // 4
-          { address: raffleAddress, abi: RAFFLE_ABI, functionName: "getInterval" },        // 5
-          { address: raffleAddress, abi: RAFFLE_ABI, functionName: "getPlayersCount" },    // 6
-          { address: raffleAddress, abi: RAFFLE_ABI, functionName: "getLastRequestId" },   // 7
-          { address: raffleAddress, abi: RAFFLE_ABI, functionName: "owner" },              // 8
-          { address: raffleAddress, abi: RAFFLE_ABI, functionName: "s_vrfCoordinator" },   // 9
-          { address: raffleAddress, abi: RAFFLE_ABI, functionName: "checkUpkeep", args: ["0x"] }, // 10
-        ]
+        { address: raffleAddress, abi: RAFFLE_ABI, functionName: "getRaffleState" },    // 0
+        { address: raffleAddress, abi: RAFFLE_ABI, functionName: "getEntryFee" },        // 1
+        { address: raffleAddress, abi: RAFFLE_ABI, functionName: "getBalance" },         // 2
+        { address: raffleAddress, abi: RAFFLE_ABI, functionName: "getLastWinner" },      // 3
+        { address: raffleAddress, abi: RAFFLE_ABI, functionName: "getLastTimestamp" },   // 4
+        { address: raffleAddress, abi: RAFFLE_ABI, functionName: "getInterval" },        // 5
+        { address: raffleAddress, abi: RAFFLE_ABI, functionName: "getPlayersCount" },    // 6
+        { address: raffleAddress, abi: RAFFLE_ABI, functionName: "getLastRequestId" },   // 7
+        { address: raffleAddress, abi: RAFFLE_ABI, functionName: "owner" },              // 8
+        { address: raffleAddress, abi: RAFFLE_ABI, functionName: "s_vrfCoordinator" },   // 9
+        { address: raffleAddress, abi: RAFFLE_ABI, functionName: "checkUpkeep", args: ["0x"] }, // 10
+      ]
       : [],
     query: { enabled: isSupported, refetchInterval: 2000 },
   });
@@ -151,16 +152,14 @@ export function RaffleCard() {
       {/* State badge */}
       <div className="flex items-center gap-3">
         <span
-          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
-            isProcessing
+          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${isProcessing
               ? "bg-amber-500/20 text-amber-400"
               : "bg-emerald-500/20 text-emerald-400"
-          }`}
+            }`}
         >
           <span
-            className={`h-2 w-2 rounded-full ${
-              isProcessing ? "animate-pulse bg-amber-400" : "bg-emerald-400"
-            }`}
+            className={`h-2 w-2 rounded-full ${isProcessing ? "animate-pulse bg-amber-400" : "bg-emerald-400"
+              }`}
           />
           {isProcessing ? "Drawing Winner…" : "Open — Enter Now"}
         </span>
@@ -262,10 +261,10 @@ export function RaffleCard() {
               {isPending
                 ? "Confirm in wallet…"
                 : isConfirming
-                ? "Confirming…"
-                : isProcessing
-                ? "Draw in progress"
-                : "Enter Raffle"}
+                  ? "Confirming…"
+                  : isProcessing
+                    ? "Draw in progress"
+                    : "Enter Raffle"}
             </button>
             {txHash && (() => {
               const url = explorerTx(txHash, chainId);

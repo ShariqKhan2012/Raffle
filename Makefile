@@ -6,11 +6,6 @@
         perform-upkeep-anvil perform-upkeep-sepolia \
         anvil help
 
-# Override any of these in .env
-ANVIL_RPC_URL    ?= http://127.0.0.1:8545
-ANVIL_ACCOUNT     ?= shariq-foundry-dev
-SEPOLIA_ACCOUNT  ?= metamask_acct_1
-
 help:
 	@echo "Usage:"
 	@echo ""
@@ -50,47 +45,64 @@ anvil:
 # ── Anvil ──────────────────────────────────────────────────────────────────────
 deploy-anvil:
 	forge script script/DeployRaffle.s.sol:DeployRaffle \
-		--rpc-url $(ANVIL_RPC_URL) --account $(ANVIL_ACCOUNT) --broadcast -vvvv
+		--rpc-url $(ANVIL_RPC_URL) --account $(ANVIL_DEPLOYER_ACCOUNT) --broadcast -vvvv
 
 create-subscription-anvil:
 	forge script script/Interactions.s.sol:SubscriptionCreator \
-		--rpc-url $(ANVIL_RPC_URL) --account $(ANVIL_ACCOUNT) --broadcast -vvvv
+		--rpc-url $(ANVIL_RPC_URL) --account $(ANVIL_DEPLOYER_ACCOUNT) --broadcast -vvvv
 
 fund-subscription-anvil:
 	forge script script/Interactions.s.sol:SubscriptionFunder \
-		--rpc-url $(ANVIL_RPC_URL) --account $(ANVIL_ACCOUNT) --broadcast -vvvv
+		--rpc-url $(ANVIL_RPC_URL) --account $(ANVIL_DEPLOYER_ACCOUNT) --broadcast -vvvv
 
 add-consumer-anvil:
 	forge script script/Interactions.s.sol:ConsumerAdder \
-		--rpc-url $(ANVIL_RPC_URL) --account $(ANVIL_ACCOUNT) --broadcast -vvvv
+		--rpc-url $(ANVIL_RPC_URL) --account $(ANVIL_DEPLOYER_ACCOUNT) --broadcast -vvvv
 
 # ── Sepolia ─────────────────────────────────────────────────────────────────
 deploy-sepolia:
 	forge script script/DeployRaffle.s.sol:DeployRaffle \
-		--rpc-url $(ALCHEMY_SEPOLIA_RPC_URL) \
-		--account $(SEPOLIA_ACCOUNT) \
+		--rpc-url $(SEPOLIA_RPC_URL) \
+		--account $(SEPOLIA_DEPLOYER_ACCOUNT) \
 		--broadcast --verify \
 		--etherscan-api-key $(ETHERSCAN_API_KEY) \
 		-vvvv
 
 create-subscription-sepolia:
 	forge script script/Interactions.s.sol:SubscriptionCreator \
-		--rpc-url $(ALCHEMY_SEPOLIA_RPC_URL) --account $(SEPOLIA_ACCOUNT) --broadcast -vvvv
+		--rpc-url $(SEPOLIA_RPC_URL) --account $(SEPOLIA_DEPLOYER_ACCOUNT) --broadcast -vvvv
 
 fund-subscription-sepolia:
 	forge script script/Interactions.s.sol:SubscriptionFunder \
-		--rpc-url $(ALCHEMY_SEPOLIA_RPC_URL) --account $(SEPOLIA_ACCOUNT) --broadcast -vvvv
+		--rpc-url $(SEPOLIA_RPC_URL) --account $(SEPOLIA_DEPLOYER_ACCOUNT) --broadcast -vvvv
 
 add-consumer-sepolia:
 	forge script script/Interactions.s.sol:ConsumerAdder \
-		--rpc-url $(ALCHEMY_SEPOLIA_RPC_URL) --account $(SEPOLIA_ACCOUNT) --broadcast -vvvv
+		--rpc-url $(SEPOLIA_RPC_URL) --account $(SEPOLIA_DEPLOYER_ACCOUNT) --broadcast -vvvv
 
 # ── Manual draw trigger (replaces Chainlink Automation) ─────────────────────
 # Set ANVIL_RAFFLE_ADDRESS and SEPOLIA_RAFFLE_ADDRESS in .env after deploying.
+
 perform-upkeep-anvil:
-	cast send $(ANVIL_RAFFLE_ADDRESS) "performUpkeep(bytes)" 0x \
-		--rpc-url $(ANVIL_RPC_URL) --account $(ANVIL_ACCOUNT)
+	./utils/sync-address.sh
+	set -a && . ./.env && set +a && \
+	cast send $$ANVIL_RAFFLE_ADDRESS "performUpkeep(bytes)" 0x \
+		--rpc-url $$ANVIL_RPC_URL \
+		--account $$ANVIL_DEPLOYER_ACCOUNT
 
 perform-upkeep-sepolia:
-	cast send $(SEPOLIA_RAFFLE_ADDRESS) "performUpkeep(bytes)" 0x \
-		--rpc-url $(ALCHEMY_SEPOLIA_RPC_URL) --account $(SEPOLIA_ACCOUNT)
+	./utils/sync-address.sh
+	set -a && . ./.env && set +a && \
+	cast send $$SEPOLIA_RAFFLE_ADDRESS "performUpkeep(bytes)" 0x \
+		--rpc-url $$SEPOLIA_RPC_URL \
+		--account $$SEPOLIA_DEPLOYER_ACCOUNT
+
+# Frontend specific
+sync-abi:
+	node ./utils/sync-abis.js
+
+sync-deployed-addresses:
+	node ./utils/sync-deployed-addresses.js
+
+run:
+	cd ui && npm run dev

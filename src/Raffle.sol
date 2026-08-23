@@ -157,7 +157,7 @@ contract Raffle is VRFConsumerBaseV2Plus /*, AutomationCompatibleInterface*/ {
             bool hasBalance,
             bool hasPlayers
         ) = _checkUpkeepDependencies();
-`
+
         bool upkeepNeeded = isRaffleRunning &&
             hasEnoughTimePassed &&
             hasBalance &&
@@ -256,5 +256,9 @@ contract Raffle is VRFConsumerBaseV2Plus /*, AutomationCompatibleInterface*/ {
 
     function getLastWinner() public view returns (address) {
         return s_lastWinner;
+    }
+
+    function getSubscriptionId() public view returns (uint256) {
+        return i_subscriptionId;
     }
 }

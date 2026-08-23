@@ -1,7 +1,6 @@
-import type { Abi } from "viem";
-import RaffleArtifact from "../lib/abi/Raffle.json";
+import RAFFLE_ABI from "../abi/Raffle.js";
+export { RAFFLE_ABI };
 
-export const RAFFLE_ABI = RaffleArtifact.abi as Abi;
 
 const ANVIL_ID = 31337;
 const SEPOLIA_ID = 11155111;
@@ -11,8 +10,9 @@ const ADDRESS_MAP: Partial<Record<number, `0x${string}`>> = {
   [SEPOLIA_ID]: (process.env.NEXT_PUBLIC_SEPOLIA_RAFFLE_ADDRESS || "") as `0x${string}`,
 };
 
-export function getRaffleAddress(chainId: number): `0x${string}` | undefined {
-  const addr = ADDRESS_MAP[chainId];
+export function getRaffleAddress(/*chainId: number*/): `0x${string}` | undefined {
+  //const addr = ADDRESS_MAP[chainId];
+  const addr = (process.env.NEXT_PUBLIC_RAFFLE_ADDRESS || "") as `0x${string}`;
   return addr && addr.length > 2 ? addr : undefined;
 }
 
