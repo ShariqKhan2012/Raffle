@@ -1,11 +1,13 @@
 import { Header } from "@/components/Header";
 import { RaffleCard } from "@/components/RaffleCard";
+import { RaffleHistory } from "@/components/RaffleHistory";
 
 export default function Home() {
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
       <main className="flex flex-1 flex-col items-center px-6 py-16">
+
         {/* Hero */}
         <div className="mb-12 text-center">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-violet-500/30 bg-violet-500/10 px-4 py-1.5 text-xs font-medium text-violet-300">
@@ -21,7 +23,11 @@ export default function Home() {
           </p>
         </div>
 
-        <RaffleCard />
+        {/* Main content — raffle card + history sidebar */}
+        <div className="w-full max-w-5xl grid grid-cols-1 gap-6 lg:grid-cols-[1fr_300px] lg:items-start">
+          <RaffleCard />
+          <RaffleHistory />
+        </div>
 
         {/* How it works */}
         <section className="mt-20 w-full max-w-3xl">

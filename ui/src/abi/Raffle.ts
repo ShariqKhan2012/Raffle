@@ -185,6 +185,49 @@ export default [
   },
   {
     "type": "function",
+    "name": "getRaffleCounter",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getRaffleHistory",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple[]",
+        "internalType": "struct Raffle.RaffleInfo[]",
+        "components": [
+          {
+            "name": "prizeMoney",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "numParticipants",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "winner",
+            "type": "address",
+            "internalType": "address"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "getRaffleState",
     "inputs": [],
     "outputs": [

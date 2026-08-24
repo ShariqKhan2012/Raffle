@@ -1,4 +1,4 @@
-import RAFFLE_ABI from "../abi/Raffle.js";
+import RAFFLE_ABI from "../abi/Raffle";
 export { RAFFLE_ABI };
 
 

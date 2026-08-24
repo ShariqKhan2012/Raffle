@@ -35,6 +35,12 @@ contract Raffle is VRFConsumerBaseV2Plus /*, AutomationCompatibleInterface*/ {
         PROCESSING
     }
 
+    struct RaffleInfo {
+        uint256 prizeMoney;
+        uint256 numParticipants;
+        address winner;
+    }
+
     /**
      * @dev State variables
      */
@@ -42,6 +48,8 @@ contract Raffle is VRFConsumerBaseV2Plus /*, AutomationCompatibleInterface*/ {
     uint256 private s_lastTimestamp;
     uint256 private s_lastRequestId;
     address private s_lastWinner;
+    uint256 private s_raffleCounter = 1;
+    RaffleInfo[] private s_raffleHistory;
     RaffleState private s_raffleState;
 
     uint256 private immutable i_entryFee;
@@ -202,9 +210,18 @@ contract Raffle is VRFConsumerBaseV2Plus /*, AutomationCompatibleInterface*/ {
 
         uint256 winnerIndex = randomWords[0] % s_players.length;
         s_lastWinner = s_players[winnerIndex];
+
+        // Store the raffle info in the history
+        s_raffleHistory.push(RaffleInfo({
+            prizeMoney: address(this).balance,
+            numParticipants: s_players.length,
+            winner: s_lastWinner
+        }));
+
         s_raffleState = RaffleState.OPEN;
         s_players = new address payable[](0);
         s_lastTimestamp = block.timestamp;
+        s_raffleCounter++;
 
         emit Raffle__WinnerPicked(s_lastWinner);
         (bool success, ) = payable(s_lastWinner).call{
@@ -221,6 +238,10 @@ contract Raffle is VRFConsumerBaseV2Plus /*, AutomationCompatibleInterface*/ {
      */
     function getEntryFee() public view returns (uint256) {
         return i_entryFee;
+    }
+
+    function getRaffleCounter() public view returns (uint256) {
+        return s_raffleCounter;
     }
 
     function getRaffleState() public view returns (RaffleState) {
@@ -260,5 +281,9 @@ contract Raffle is VRFConsumerBaseV2Plus /*, AutomationCompatibleInterface*/ {
 
     function getSubscriptionId() public view returns (uint256) {
         return i_subscriptionId;
+    }
+
+    function getRaffleHistory() public view returns (RaffleInfo[] memory) {
+        return s_raffleHistory;
     }
 }
